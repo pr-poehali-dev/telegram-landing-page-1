@@ -52,9 +52,9 @@ const Index = () => {
   return (
     <div className="telegram-pattern min-h-screen flex items-center justify-center p-4 py-6">
       <div className="w-full max-w-6xl relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:items-start">
-          <div className="lg:flex lg:flex-col lg:sticky lg:top-4">
-            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl relative">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:flex lg:flex-col">
+            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl relative lg:h-full">
             <div className="absolute top-4 left-4 z-10">
               <Icon name="Send" size={24} className="text-primary" />
             </div>
@@ -96,11 +96,11 @@ const Index = () => {
           </Card>
           </div>
 
-          <div className="lg:col-span-2 lg:flex lg:flex-col">
+          <div className="lg:col-span-2 flex flex-col max-h-full">
             <div className="flex items-center gap-3 text-white mb-4">
               <span className="text-lg font-semibold">Топовые посты</span>
             </div>
-            <div className="grid gap-3 lg:flex-1 lg:grid-rows-2">
+            <div className="grid gap-3 grid-rows-2 flex-1 overflow-hidden">
               {loading ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-600 border-t-primary"></div>
