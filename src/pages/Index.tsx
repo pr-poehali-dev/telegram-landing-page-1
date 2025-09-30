@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import Icon from '@/components/ui/icon';
 
 const CHANNEL_INFO = {
@@ -102,9 +103,29 @@ const Index = () => {
             </div>
             <div className="grid gap-3 grid-rows-2 flex-1 overflow-hidden">
               {loading ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-600 border-t-primary"></div>
-                </div>
+                <>
+                  {[1, 2].map((i) => (
+                    <Card key={i} className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl h-full">
+                      <div className="p-4 flex gap-4 h-full">
+                        <Skeleton className="flex-shrink-0 rounded-lg w-32 h-full bg-gray-700/50" />
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <Skeleton className="h-4 w-3/4 mb-2 bg-gray-700/50" />
+                            <Skeleton className="h-3 w-full mb-1.5 bg-gray-700/50" />
+                            <Skeleton className="h-3 w-5/6 bg-gray-700/50" />
+                          </div>
+                          <div className="flex items-center justify-between pt-3">
+                            <div className="flex items-center gap-2.5">
+                              <Skeleton className="h-5 w-12 bg-gray-700/50" />
+                              <Skeleton className="h-5 w-12 bg-gray-700/50" />
+                            </div>
+                            <Skeleton className="h-4 w-10 bg-gray-700/50" />
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </>
               ) : (
                 posts.map((post, idx) => (
                   <Card
