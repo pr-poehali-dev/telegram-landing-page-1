@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { LoginForm } from '@/components/admin/LoginForm';
+import { AdminHeader } from '@/components/admin/AdminHeader';
+import { PostForm } from '@/components/admin/PostForm';
+import { PostList } from '@/components/admin/PostList';
 
 const POSTS_API = 'https://functions.poehali.dev/db373ce5-74a9-4e99-8495-f473299be4e2';
-const UPLOAD_API = 'https://functions.poehali.dev/1d8298fc-c737-4135-bd22-4d9c96e6f07c';
 
 interface Post {
   id: number;
@@ -32,17 +30,11 @@ const Admin = () => {
     views: 0,
     reactions: {} as Record<string, number>,
   });
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [jwtToken, setJwtToken] = useState<string>(() => {
     return localStorage.getItem('admin_jwt_token') || '';
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
-  const [reactionInput, setReactionInput] = useState({ emoji: '', count: '' });
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   
-  const popularEmojis = ['🔥', '❤️', '👍', '😂', '😍', '🎉', '💯', '👏', '⭐', '✨', '💪', '🚀'];
   const { toast } = useToast();
 
   const fetchPosts = async () => {
@@ -61,15 +53,15 @@ const Admin = () => {
     }
   };
   
-  const handleLogin = async () => {
+  const handleLogin = async (username: string, password: string) => {
     try {
       const response = await fetch(POSTS_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'login',
-          username: credentials.username,
-          password: credentials.password
+          username,
+          password
         })
       });
       
@@ -101,7 +93,6 @@ const Admin = () => {
   useEffect(() => {
     fetchPosts();
     
-    // Проверяем сохранённый токен
     const savedToken = localStorage.getItem('admin_jwt_token');
     if (savedToken) {
       setJwtToken(savedToken);
@@ -142,9 +133,6 @@ const Admin = () => {
         });
         setFormData({ title: '', preview: '', image_url: '', post_url: '', views: 0, reactions: {} });
         setEditingId(null);
-        setImageFile(null);
-        setImagePreview('');
-        setReactionInput({ emoji: '', count: '' });
         fetchPosts();
       }
     } catch (error) {
@@ -166,8 +154,6 @@ const Admin = () => {
       views: post.views,
       reactions: post.reactions || {},
     });
-    setImagePreview(post.image_url);
-    setImageFile(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -212,75 +198,20 @@ const Admin = () => {
   const handleCancel = () => {
     setEditingId(null);
     setFormData({ title: '', preview: '', image_url: '', post_url: '', views: 0, reactions: {} });
-    setImageFile(null);
-    setImagePreview('');
-    setReactionInput({ emoji: '', count: '' });
   };
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        setImagePreview(base64);
-        
-        // Upload to backend immediately
-        try {
-          const response = await fetch(UPLOAD_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              image: base64,
-              filename: file.name
-            })
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            // Use the base64 as URL since CDN upload is not available
-            setFormData({ ...formData, image_url: base64 });
-            toast({
-              title: 'Успешно',
-              description: 'Изображение загружено',
-            });
-          }
-        } catch (error) {
-          toast({
-            title: 'Ошибка',
-            description: 'Не удалось загрузить изображение',
-            variant: 'destructive',
-          });
-        }
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('admin_jwt_token');
+    setJwtToken('');
+    setIsAuthenticated(false);
+    toast({
+      title: 'Выход',
+      description: 'Вы вышли из системы',
+    });
   };
 
-  const handleAddReaction = () => {
-    if (reactionInput.emoji && reactionInput.count) {
-      setFormData({
-        ...formData,
-        reactions: {
-          ...formData.reactions,
-          [reactionInput.emoji]: parseInt(reactionInput.count) || 0,
-        },
-      });
-      setReactionInput({ emoji: '', count: '' });
-      setShowEmojiPicker(false);
-    }
-  };
-  
-  const handleEmojiSelect = (emoji: string) => {
-    setReactionInput({ ...reactionInput, emoji });
-    setShowEmojiPicker(false);
-  };
-
-  const handleRemoveReaction = (emoji: string) => {
-    const newReactions = { ...formData.reactions };
-    delete newReactions[emoji];
-    setFormData({ ...formData, reactions: newReactions });
+  const handleGoHome = () => {
+    window.location.href = '/';
   };
 
   if (loading) {
@@ -292,276 +223,27 @@ const Admin = () => {
   }
   
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
-        <Card className="bg-[#2d2d2d] border-0 p-8 w-full max-w-md">
-          <h1 className="text-2xl font-bold text-white mb-6 text-center">Вход в админку</h1>
-          <div className="space-y-4">
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Логин</label>
-              <Input
-                value={credentials.username}
-                onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-                className="bg-gray-800 border-gray-700 text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Пароль</label>
-              <Input
-                type="password"
-                value={credentials.password}
-                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                className="bg-gray-800 border-gray-700 text-white"
-                required
-              />
-            </div>
-            <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90">
-              Войти
-            </Button>
-          </div>
-        </Card>
-      </div>
-    );
+    return <LoginForm onLogin={handleLogin} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-900 p-4 py-8">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Icon name="Settings" size={32} className="text-primary" />
-            Управление постами
-          </h1>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => {
-                localStorage.removeItem('admin_jwt_token');
-                setJwtToken('');
-                setIsAuthenticated(false);
-                toast({
-                  title: 'Выход',
-                  description: 'Вы вышли из системы',
-                });
-              }}
-              className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
-            >
-              <Icon name="LogOut" size={18} className="mr-2" />
-              Выйти
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => (window.location.href = '/')}
-              className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
-            >
-              <Icon name="ArrowLeft" size={18} className="mr-2" />
-              На главную
-            </Button>
-          </div>
-        </div>
+        <AdminHeader onLogout={handleLogout} onGoHome={handleGoHome} />
+        
+        <PostForm
+          formData={formData}
+          editingId={editingId}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          onChange={setFormData}
+        />
 
-        <Card className="bg-[#2d2d2d] border-0 p-6 mb-8">
-          <h2 className="text-xl font-semibold text-white mb-4">
-            {editingId ? 'Редактировать пост' : 'Создать новый пост'}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Заголовок</label>
-              <Input
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
-                className="bg-gray-800 border-gray-700 text-white"
-                placeholder="Название поста"
-              />
-            </div>
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Превью текст</label>
-              <Textarea
-                value={formData.preview}
-                onChange={(e) => setFormData({ ...formData, preview: e.target.value })}
-                required
-                className="bg-gray-800 border-gray-700 text-white min-h-[100px]"
-                placeholder="Краткое описание поста"
-              />
-            </div>
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Изображение</label>
-              <div className="space-y-3">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="bg-gray-800 border-gray-700 text-white file:bg-gray-700 file:text-white file:border-0 file:px-4 file:py-2 file:rounded file:mr-4"
-                />
-                {imagePreview && (
-                  <div className="relative w-32 h-32">
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-lg" />
-                  </div>
-                )}
-                <Input
-                  value={formData.image_url}
-                  onChange={(e) => {
-                    setFormData({ ...formData, image_url: e.target.value });
-                    setImagePreview(e.target.value);
-                  }}
-                  className="bg-gray-800 border-gray-700 text-white"
-                  placeholder="Или вставьте URL изображения"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Просмотры</label>
-              <Input
-                type="number"
-                value={formData.views}
-                onChange={(e) => setFormData({ ...formData, views: parseInt(e.target.value) || 0 })}
-                className="bg-gray-800 border-gray-700 text-white"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">URL поста (Telegram)</label>
-              <Input
-                value={formData.post_url}
-                onChange={(e) => setFormData({ ...formData, post_url: e.target.value })}
-                className="bg-gray-800 border-gray-700 text-white"
-                placeholder="https://t.me/channel/123"
-              />
-            </div>
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Реакции</label>
-              <div className="space-y-3">
-                <div className="flex gap-2 items-center">
-                  <Input
-                    value={reactionInput.emoji}
-                    onChange={(e) => setReactionInput({ ...reactionInput, emoji: e.target.value })}
-                    className="bg-gray-800 border-gray-700 text-white w-20 text-center text-2xl h-12"
-                    placeholder="😀"
-                    maxLength={2}
-                  />
-                  <div className="relative">
-                    <Button
-                      type="button"
-                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className="bg-gray-700 border-0 text-white hover:bg-gray-600 px-3 h-12"
-                    >
-                      <Icon name="Smile" size={20} />
-                    </Button>
-                    {showEmojiPicker && (
-                      <>
-                        <div 
-                          className="fixed inset-0 z-40" 
-                          onClick={() => setShowEmojiPicker(false)}
-                        />
-                        <div className="absolute z-50 mt-2 left-0 bg-gray-800 border border-gray-700 rounded-lg p-4 grid grid-cols-6 gap-2 shadow-2xl min-w-[320px]">
-                          {popularEmojis.map((emoji) => (
-                            <button
-                              key={emoji}
-                              type="button"
-                              onClick={() => handleEmojiSelect(emoji)}
-                              className="text-3xl hover:bg-gray-700 rounded-lg p-2 transition-colors w-12 h-12 flex items-center justify-center"
-                            >
-                              {emoji}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <Input
-                    type="number"
-                    value={reactionInput.count}
-                    onChange={(e) => setReactionInput({ ...reactionInput, count: e.target.value })}
-                    className="bg-gray-800 border-gray-700 text-white w-24"
-                    placeholder="Кол-во"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleAddReaction}
-                    className="bg-primary hover:bg-primary/90"
-                    disabled={!reactionInput.emoji || !reactionInput.count}
-                  >
-                    Добавить
-                  </Button>
-                </div>
-                {Object.keys(formData.reactions).length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(formData.reactions).map(([emoji, count]) => (
-                      <div key={emoji} className="bg-gray-700 px-3 py-2 rounded-lg flex items-center gap-2">
-                        <span className="text-xl">{emoji}</span>
-                        <span className="text-white text-sm font-medium">{count}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveReaction(emoji)}
-                          className="text-red-400 hover:text-red-300 ml-1 text-lg font-bold"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button type="submit" className="bg-primary hover:bg-primary/90">
-                {editingId ? 'Сохранить изменения' : 'Создать пост'}
-              </Button>
-              {editingId && (
-                <Button type="button" variant="outline" onClick={handleCancel} className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700">
-                  Отмена
-                </Button>
-              )}
-            </div>
-          </form>
-        </Card>
-
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-white">Все посты ({posts.length})</h2>
-          {posts.map((post) => (
-            <Card key={post.id} className="bg-[#2d2d2d] border-0 p-6">
-              <div className="flex gap-4">
-                {post.image_url && (
-                  <img
-                    src={post.image_url}
-                    alt={post.title}
-                    className="w-32 h-32 rounded-lg object-cover"
-                  />
-                )}
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-2">{post.title}</h3>
-                  <p className="text-gray-400 text-sm mb-3">{post.preview}</p>
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span>👁 {post.views} просмотров</span>
-                    <span>{new Date(post.created_at).toLocaleDateString('ru-RU')}</span>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEdit(post)}
-                    className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
-                  >
-                    <Icon name="Edit" size={16} className="mr-1" />
-                    Изменить
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDelete(post.id)}
-                    className="bg-red-900/20 border-red-700 text-red-400 hover:bg-red-900/40"
-                  >
-                    <Icon name="Trash2" size={16} className="mr-1" />
-                    Удалить
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <PostList
+          posts={posts}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
     </div>
   );
