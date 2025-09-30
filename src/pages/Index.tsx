@@ -58,12 +58,11 @@ const Index = () => {
     <div className="telegram-pattern min-h-screen flex items-center justify-center p-4 py-6">
       <div className="w-full max-w-6xl relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 text-white">
+          <div>
+            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl relative">
+            <div className="absolute top-4 left-4 z-10">
               <Icon name="Send" size={24} className="text-primary" />
-              <span className="text-lg font-semibold">Telegram</span>
             </div>
-            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl">
             <div className="p-6 text-center">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-800 ring-4 ring-gray-700/50">
                 <img
