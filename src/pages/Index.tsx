@@ -54,7 +54,7 @@ const Index = () => {
   };
 
   return (
-    <div className="telegram-pattern min-h-screen flex items-center justify-center p-4 py-6">
+    <div className="telegram-pattern min-h-screen flex items-start lg:items-center justify-center p-4 py-6">
       <div className="w-full max-w-6xl relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:flex lg:flex-col">
