@@ -28,9 +28,12 @@ const Admin = () => {
     title: '',
     preview: '',
     image_url: '',
+    post_url: '',
     views: 0,
     reactions: {} as Record<string, number>,
   });
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [reactionInput, setReactionInput] = useState({ emoji: '', count: '' });
@@ -54,6 +57,11 @@ const Admin = () => {
       setLoading(false);
     }
   };
+  
+  const getAuthHeader = () => {
+    const token = btoa(`${credentials.username}:${credentials.password}`);
+    return `Basic ${token}`;
+  };
 
   useEffect(() => {
     fetchPosts();
@@ -68,16 +76,29 @@ const Admin = () => {
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': getAuthHeader()
+        },
         body: JSON.stringify(formData),
       });
+      
+      if (response.status === 401) {
+        setIsAuthenticated(false);
+        toast({
+          title: 'Ошибка',
+          description: 'Неверные логин или пароль',
+          variant: 'destructive',
+        });
+        return;
+      }
 
       if (response.ok) {
         toast({
           title: 'Успешно',
           description: editingId ? 'Пост обновлен' : 'Пост создан',
         });
-        setFormData({ title: '', preview: '', image_url: '', views: 0, reactions: {} });
+        setFormData({ title: '', preview: '', image_url: '', post_url: '', views: 0, reactions: {} });
         setEditingId(null);
         setImageFile(null);
         setImagePreview('');
@@ -99,6 +120,7 @@ const Admin = () => {
       title: post.title,
       preview: post.preview,
       image_url: post.image_url,
+      post_url: (post as any).post_url || '',
       views: post.views,
       reactions: post.reactions || {},
     });
@@ -113,7 +135,20 @@ const Admin = () => {
     try {
       const response = await fetch(`${POSTS_API}?id=${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': getAuthHeader()
+        }
       });
+      
+      if (response.status === 401) {
+        setIsAuthenticated(false);
+        toast({
+          title: 'Ошибка',
+          description: 'Неверные логин или пароль',
+          variant: 'destructive',
+        });
+        return;
+      }
 
       if (response.ok) {
         toast({
@@ -133,10 +168,17 @@ const Admin = () => {
 
   const handleCancel = () => {
     setEditingId(null);
-    setFormData({ title: '', preview: '', image_url: '', views: 0, reactions: {} });
+    setFormData({ title: '', preview: '', image_url: '', post_url: '', views: 0, reactions: {} });
     setImageFile(null);
     setImagePreview('');
     setReactionInput({ emoji: '', count: '' });
+  };
+  
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (credentials.username && credentials.password) {
+      setIsAuthenticated(true);
+    }
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -209,6 +251,40 @@ const Admin = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-white">Загрузка...</div>
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
+        <Card className="bg-[#2d2d2d] border-0 p-8 w-full max-w-md">
+          <h1 className="text-2xl font-bold text-white mb-6 text-center">Вход в админку</h1>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="text-gray-300 text-sm mb-2 block">Логин</label>
+              <Input
+                value={credentials.username}
+                onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+                className="bg-gray-800 border-gray-700 text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-gray-300 text-sm mb-2 block">Пароль</label>
+              <Input
+                type="password"
+                value={credentials.password}
+                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                className="bg-gray-800 border-gray-700 text-white"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+              Войти
+            </Button>
+          </form>
+        </Card>
       </div>
     );
   }
@@ -292,25 +368,34 @@ const Admin = () => {
               />
             </div>
             <div>
+              <label className="text-gray-300 text-sm mb-2 block">URL поста (Telegram)</label>
+              <Input
+                value={formData.post_url}
+                onChange={(e) => setFormData({ ...formData, post_url: e.target.value })}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="https://t.me/channel/123"
+              />
+            </div>
+            <div>
               <label className="text-gray-300 text-sm mb-2 block">Реакции</label>
               <div className="space-y-3">
-                <div className="flex gap-2 items-start">
+                <div className="flex gap-2 items-center flex-wrap">
                   <div className="relative">
                     <Button
                       type="button"
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className="bg-gray-800 border border-gray-700 text-white hover:bg-gray-700 w-16 h-10 text-xl"
+                      className="bg-gray-800 border border-gray-700 text-white hover:bg-gray-700 w-14 h-10 text-xl p-0"
                     >
                       {reactionInput.emoji || '😀'}
                     </Button>
                     {showEmojiPicker && (
-                      <div className="absolute z-50 mt-2 bg-gray-800 border border-gray-700 rounded-lg p-3 grid grid-cols-6 gap-2 shadow-xl">
+                      <div className="absolute z-50 mt-2 left-0 bg-gray-800 border border-gray-700 rounded-lg p-2 grid grid-cols-6 gap-1 shadow-xl">
                         {popularEmojis.map((emoji) => (
                           <button
                             key={emoji}
                             type="button"
                             onClick={() => handleEmojiSelect(emoji)}
-                            className="text-2xl hover:bg-gray-700 rounded p-2 transition-colors"
+                            className="text-2xl hover:bg-gray-700 rounded p-1.5 transition-colors w-10 h-10 flex items-center justify-center"
                           >
                             {emoji}
                           </button>
@@ -319,10 +404,16 @@ const Admin = () => {
                     )}
                   </div>
                   <Input
+                    value={reactionInput.emoji}
+                    onChange={(e) => setReactionInput({ ...reactionInput, emoji: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white w-16 text-center text-xl"
+                    placeholder="😀"
+                  />
+                  <Input
                     type="number"
                     value={reactionInput.count}
                     onChange={(e) => setReactionInput({ ...reactionInput, count: e.target.value })}
-                    className="bg-gray-800 border-gray-700 text-white w-28"
+                    className="bg-gray-800 border-gray-700 text-white w-24"
                     placeholder="Кол-во"
                   />
                   <Button

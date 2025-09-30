@@ -7,6 +7,7 @@ Returns: HTTP response dict с постами в JSON формате
 
 import json
 import os
+import base64
 from typing import Dict, Any, List, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -15,6 +16,27 @@ def get_db_connection():
     """Создает подключение к базе данных"""
     database_url = os.environ.get('DATABASE_URL')
     return psycopg2.connect(database_url, cursor_factory=RealDictCursor)
+
+def check_basic_auth(headers: Dict[str, str]) -> bool:
+    """Проверяет Basic Auth"""
+    auth_header = headers.get('authorization') or headers.get('Authorization')
+    if not auth_header:
+        return False
+    
+    try:
+        scheme, credentials = auth_header.split(' ', 1)
+        if scheme.lower() != 'basic':
+            return False
+        
+        decoded = base64.b64decode(credentials).decode('utf-8')
+        username, password = decoded.split(':', 1)
+        
+        expected_username = os.environ.get('ADMIN_USERNAME', 'admin')
+        expected_password = os.environ.get('ADMIN_PASSWORD', 'admin')
+        
+        return username == expected_username and password == expected_password
+    except:
+        return False
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'GET')
@@ -26,7 +48,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -37,7 +59,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # GET /posts - получить все посты
+        # GET /posts - получить все посты (публичный доступ)
         if method == 'GET':
             path_params = event.get('pathParams', {})
             post_id = path_params.get('id')
@@ -84,21 +106,33 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
         
-        # POST /posts - создать новый пост
+        # POST /posts - создать новый пост (требует авторизации)
         elif method == 'POST':
+            if not check_basic_auth(event.get('headers', {})):
+                return {
+                    'statusCode': 401,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                        'WWW-Authenticate': 'Basic realm="Admin Area"'
+                    },
+                    'body': json.dumps({'error': 'Unauthorized'}),
+                    'isBase64Encoded': False
+                }
             body_data = json.loads(event.get('body', '{}'))
             
             title = body_data.get('title', '')
             preview = body_data.get('preview', '')
             image_url = body_data.get('image_url', '')
+            post_url = body_data.get('post_url', '')
             reactions = json.dumps(body_data.get('reactions', {}))
             views = body_data.get('views', 0)
             
             cur.execute('''
-                INSERT INTO posts (title, preview, image_url, reactions, views)
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING id, title, preview, image_url, reactions, views, created_at, updated_at
-            ''', (title, preview, image_url, reactions, views))
+                INSERT INTO posts (title, preview, image_url, post_url, reactions, views)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id, title, preview, image_url, post_url, reactions, views, created_at, updated_at
+            ''', (title, preview, image_url, post_url, reactions, views))
             
             post = cur.fetchone()
             conn.commit()
@@ -114,8 +148,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        # PUT /posts/:id - обновить пост
+        # PUT /posts/:id - обновить пост (требует авторизации)
         elif method == 'PUT':
+            if not check_basic_auth(event.get('headers', {})):
+                return {
+                    'statusCode': 401,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                        'WWW-Authenticate': 'Basic realm="Admin Area"'
+                    },
+                    'body': json.dumps({'error': 'Unauthorized'}),
+                    'isBase64Encoded': False
+                }
             path_params = event.get('pathParams', {})
             post_id = path_params.get('id')
             
@@ -132,6 +177,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             title = body_data.get('title')
             preview = body_data.get('preview')
             image_url = body_data.get('image_url')
+            post_url = body_data.get('post_url')
             reactions = json.dumps(body_data.get('reactions')) if body_data.get('reactions') else None
             views = body_data.get('views')
             
@@ -148,6 +194,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if image_url is not None:
                 update_fields.append('image_url = %s')
                 update_values.append(image_url)
+            if post_url is not None:
+                update_fields.append('post_url = %s')
+                update_values.append(post_url)
             if reactions is not None:
                 update_fields.append('reactions = %s')
                 update_values.append(reactions)
@@ -162,7 +211,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 UPDATE posts 
                 SET {', '.join(update_fields)}
                 WHERE id = %s
-                RETURNING id, title, preview, image_url, reactions, views, created_at, updated_at
+                RETURNING id, title, preview, image_url, post_url, reactions, views, created_at, updated_at
             '''
             
             cur.execute(query, update_values)
@@ -188,8 +237,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        # DELETE /posts?id=X - удалить пост
+        # DELETE /posts?id=X - удалить пост (требует авторизации)
         elif method == 'DELETE':
+            if not check_basic_auth(event.get('headers', {})):
+                return {
+                    'statusCode': 401,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                        'WWW-Authenticate': 'Basic realm="Admin Area"'
+                    },
+                    'body': json.dumps({'error': 'Unauthorized'}),
+                    'isBase64Encoded': False
+                }
             query_params = event.get('queryStringParameters', {})
             post_id = query_params.get('id')
             

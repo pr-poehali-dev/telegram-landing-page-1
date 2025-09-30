@@ -8,7 +8,7 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Create new post",
+      "name": "Create new post requires auth",
       "method": "POST",
       "path": "/",
       "body": {
@@ -18,7 +18,7 @@
         "reactions": {"🔥": 5},
         "views": 100
       },
-      "expectedStatus": 201,
+      "expectedStatus": 401,
       "bodyMatcher": "partial"
     }
   ]
