@@ -54,11 +54,11 @@ const Index = () => {
       <div className="w-full max-w-6xl relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:flex lg:flex-col">
-            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl relative lg:h-full">
+            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl relative lg:h-full flex flex-col">
             <div className="absolute top-4 left-4 z-10">
               <Icon name="Send" size={24} className="text-primary" />
             </div>
-            <div className="p-6 text-center flex flex-col justify-center flex-1">
+            <div className="p-6 text-center flex flex-col justify-end flex-1">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-800 ring-4 ring-gray-700/50">
                 <img
                   src={CHANNEL_INFO.avatarUrl}
@@ -106,10 +106,11 @@ const Index = () => {
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-600 border-t-primary"></div>
                 </div>
               ) : (
-                posts.map((post) => (
+                posts.map((post, idx) => (
                   <Card
                     key={post.id}
-                    className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer h-full"
+                    className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer h-full animate-in fade-in duration-500"
+                    style={{ animationDelay: `${idx * 150}ms` }}
                     onClick={() => handleSubscribe(post.custom_link)}
                   >
                     <div className="p-4 flex gap-4 h-full">
