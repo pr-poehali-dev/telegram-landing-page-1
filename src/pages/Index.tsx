@@ -5,7 +5,7 @@ import Icon from '@/components/ui/icon';
 
 const CHANNEL_INFO = {
   name: 'Крохмалюк',
-  handle: 'krokhmalyuk',
+  handle: 'growthsecrets',
   tagline: 'Бывший CMO Ultimate Guitar и COO Яндекса с командой 60+ человек и миллиардными маркетинговыми бюджетами. Также, создател...',
   subscribers: 353,
   avatarUrl: 'https://cdn.poehali.dev/files/e8c5aca1-e954-401a-bb79-620656139ed2.jpg',
