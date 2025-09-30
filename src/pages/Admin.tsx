@@ -74,11 +74,14 @@ const Admin = () => {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${POSTS_API}/${editingId}` : POSTS_API;
       
+      const authHeader = getAuthHeader();
+      console.log('Sending auth header:', authHeader);
+      
       const response = await fetch(url, {
         method,
         headers: { 
           'Content-Type': 'application/json',
-          'X-Auth-Token': getAuthHeader()
+          'X-Auth-Token': authHeader
         },
         body: JSON.stringify(formData),
       });
