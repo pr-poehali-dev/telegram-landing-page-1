@@ -28,7 +28,11 @@ const Admin = () => {
     preview: '',
     image_url: '',
     views: 0,
+    reactions: {} as Record<string, number>,
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [reactionInput, setReactionInput] = useState({ emoji: '', count: '' });
   const { toast } = useToast();
 
   const fetchPosts = async () => {
@@ -58,12 +62,29 @@ const Admin = () => {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${POSTS_API}/${editingId}` : POSTS_API;
       
+      let finalImageUrl = formData.image_url;
+      
+      if (imageFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', imageFile);
+        
+        const uploadResponse = await fetch('https://cdn.poehali.dev/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          finalImageUrl = uploadData.url;
+        }
+      }
+      
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          reactions: {},
+          image_url: finalImageUrl,
         }),
       });
 
@@ -72,8 +93,11 @@ const Admin = () => {
           title: 'Успешно',
           description: editingId ? 'Пост обновлен' : 'Пост создан',
         });
-        setFormData({ title: '', preview: '', image_url: '', views: 0 });
+        setFormData({ title: '', preview: '', image_url: '', views: 0, reactions: {} });
         setEditingId(null);
+        setImageFile(null);
+        setImagePreview('');
+        setReactionInput({ emoji: '', count: '' });
         fetchPosts();
       }
     } catch (error) {
@@ -92,7 +116,10 @@ const Admin = () => {
       preview: post.preview,
       image_url: post.image_url,
       views: post.views,
+      reactions: post.reactions || {},
     });
+    setImagePreview(post.image_url);
+    setImageFile(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -122,7 +149,41 @@ const Admin = () => {
 
   const handleCancel = () => {
     setEditingId(null);
-    setFormData({ title: '', preview: '', image_url: '', views: 0 });
+    setFormData({ title: '', preview: '', image_url: '', views: 0, reactions: {} });
+    setImageFile(null);
+    setImagePreview('');
+    setReactionInput({ emoji: '', count: '' });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddReaction = () => {
+    if (reactionInput.emoji && reactionInput.count) {
+      setFormData({
+        ...formData,
+        reactions: {
+          ...formData.reactions,
+          [reactionInput.emoji]: parseInt(reactionInput.count) || 0,
+        },
+      });
+      setReactionInput({ emoji: '', count: '' });
+    }
+  };
+
+  const handleRemoveReaction = (emoji: string) => {
+    const newReactions = { ...formData.reactions };
+    delete newReactions[emoji];
+    setFormData({ ...formData, reactions: newReactions });
   };
 
   if (loading) {
@@ -177,13 +238,26 @@ const Admin = () => {
               />
             </div>
             <div>
-              <label className="text-gray-300 text-sm mb-2 block">URL изображения</label>
-              <Input
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                className="bg-gray-800 border-gray-700 text-white"
-                placeholder="https://example.com/image.jpg"
-              />
+              <label className="text-gray-300 text-sm mb-2 block">Изображение</label>
+              <div className="space-y-3">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="bg-gray-800 border-gray-700 text-white file:bg-gray-700 file:text-white file:border-0 file:px-4 file:py-2 file:rounded file:mr-4"
+                />
+                {imagePreview && (
+                  <div className="relative w-32 h-32">
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                  </div>
+                )}
+                <Input
+                  value={formData.image_url}
+                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  placeholder="Или вставьте URL изображения"
+                />
+              </div>
             </div>
             <div>
               <label className="text-gray-300 text-sm mb-2 block">Просмотры</label>
@@ -194,6 +268,50 @@ const Admin = () => {
                 className="bg-gray-800 border-gray-700 text-white"
                 placeholder="0"
               />
+            </div>
+            <div>
+              <label className="text-gray-300 text-sm mb-2 block">Реакции</label>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    value={reactionInput.emoji}
+                    onChange={(e) => setReactionInput({ ...reactionInput, emoji: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white w-20"
+                    placeholder="😀"
+                  />
+                  <Input
+                    type="number"
+                    value={reactionInput.count}
+                    onChange={(e) => setReactionInput({ ...reactionInput, count: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white w-24"
+                    placeholder="Кол-во"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleAddReaction}
+                    className="bg-gray-700 hover:bg-gray-600"
+                  >
+                    Добавить
+                  </Button>
+                </div>
+                {Object.keys(formData.reactions).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(formData.reactions).map(([emoji, count]) => (
+                      <div key={emoji} className="bg-gray-700 px-3 py-1 rounded-full flex items-center gap-2">
+                        <span className="text-lg">{emoji}</span>
+                        <span className="text-white text-sm">{count}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveReaction(emoji)}
+                          className="text-red-400 hover:text-red-300 ml-1"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex gap-3">
               <Button type="submit" className="bg-primary hover:bg-primary/90">
