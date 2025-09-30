@@ -34,6 +34,9 @@ const Admin = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [reactionInput, setReactionInput] = useState({ emoji: '', count: '' });
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  
+  const popularEmojis = ['🔥', '❤️', '👍', '😂', '😍', '🎉', '💯', '👏', '⭐', '✨', '💪', '🚀'];
   const { toast } = useToast();
 
   const fetchPosts = async () => {
@@ -108,7 +111,7 @@ const Admin = () => {
     if (!confirm('Удалить этот пост?')) return;
 
     try {
-      const response = await fetch(`${POSTS_API}/${id}`, {
+      const response = await fetch(`${POSTS_API}?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -187,7 +190,13 @@ const Admin = () => {
         },
       });
       setReactionInput({ emoji: '', count: '' });
+      setShowEmojiPicker(false);
     }
+  };
+  
+  const handleEmojiSelect = (emoji: string) => {
+    setReactionInput({ ...reactionInput, emoji });
+    setShowEmojiPicker(false);
   };
 
   const handleRemoveReaction = (emoji: string) => {
@@ -285,24 +294,42 @@ const Admin = () => {
             <div>
               <label className="text-gray-300 text-sm mb-2 block">Реакции</label>
               <div className="space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    value={reactionInput.emoji}
-                    onChange={(e) => setReactionInput({ ...reactionInput, emoji: e.target.value })}
-                    className="bg-gray-800 border-gray-700 text-white w-20"
-                    placeholder="😀"
-                  />
+                <div className="flex gap-2 items-start">
+                  <div className="relative">
+                    <Button
+                      type="button"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className="bg-gray-800 border border-gray-700 text-white hover:bg-gray-700 w-16 h-10 text-xl"
+                    >
+                      {reactionInput.emoji || '😀'}
+                    </Button>
+                    {showEmojiPicker && (
+                      <div className="absolute z-50 mt-2 bg-gray-800 border border-gray-700 rounded-lg p-3 grid grid-cols-6 gap-2 shadow-xl">
+                        {popularEmojis.map((emoji) => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => handleEmojiSelect(emoji)}
+                            className="text-2xl hover:bg-gray-700 rounded p-2 transition-colors"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <Input
                     type="number"
                     value={reactionInput.count}
                     onChange={(e) => setReactionInput({ ...reactionInput, count: e.target.value })}
-                    className="bg-gray-800 border-gray-700 text-white w-24"
+                    className="bg-gray-800 border-gray-700 text-white w-28"
                     placeholder="Кол-во"
                   />
                   <Button
                     type="button"
                     onClick={handleAddReaction}
-                    className="bg-gray-700 hover:bg-gray-600"
+                    className="bg-primary hover:bg-primary/90"
+                    disabled={!reactionInput.emoji || !reactionInput.count}
                   >
                     Добавить
                   </Button>
@@ -310,13 +337,13 @@ const Admin = () => {
                 {Object.keys(formData.reactions).length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(formData.reactions).map(([emoji, count]) => (
-                      <div key={emoji} className="bg-gray-700 px-3 py-1 rounded-full flex items-center gap-2">
-                        <span className="text-lg">{emoji}</span>
-                        <span className="text-white text-sm">{count}</span>
+                      <div key={emoji} className="bg-gray-700 px-3 py-2 rounded-lg flex items-center gap-2">
+                        <span className="text-xl">{emoji}</span>
+                        <span className="text-white text-sm font-medium">{count}</span>
                         <button
                           type="button"
                           onClick={() => handleRemoveReaction(emoji)}
-                          className="text-red-400 hover:text-red-300 ml-1"
+                          className="text-red-400 hover:text-red-300 ml-1 text-lg font-bold"
                         >
                           ×
                         </button>

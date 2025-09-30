@@ -188,10 +188,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        # DELETE /posts/:id - удалить пост
+        # DELETE /posts?id=X - удалить пост
         elif method == 'DELETE':
-            path_params = event.get('pathParams', {})
-            post_id = path_params.get('id')
+            query_params = event.get('queryStringParameters', {})
+            post_id = query_params.get('id')
             
             if not post_id:
                 return {
