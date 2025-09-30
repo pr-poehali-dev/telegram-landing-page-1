@@ -62,30 +62,10 @@ const Admin = () => {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${POSTS_API}/${editingId}` : POSTS_API;
       
-      let finalImageUrl = formData.image_url;
-      
-      if (imageFile) {
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', imageFile);
-        
-        const uploadResponse = await fetch('https://cdn.poehali.dev/upload', {
-          method: 'POST',
-          body: uploadFormData,
-        });
-        
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          finalImageUrl = uploadData.url;
-        }
-      }
-      
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          image_url: finalImageUrl,
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
@@ -241,22 +221,19 @@ const Admin = () => {
               <label className="text-gray-300 text-sm mb-2 block">Изображение</label>
               <div className="space-y-3">
                 <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="bg-gray-800 border-gray-700 text-white file:bg-gray-700 file:text-white file:border-0 file:px-4 file:py-2 file:rounded file:mr-4"
+                  value={formData.image_url}
+                  onChange={(e) => {
+                    setFormData({ ...formData, image_url: e.target.value });
+                    setImagePreview(e.target.value);
+                  }}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  placeholder="Вставьте URL изображения"
                 />
                 {imagePreview && (
                   <div className="relative w-32 h-32">
                     <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-lg" />
                   </div>
                 )}
-                <Input
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  className="bg-gray-800 border-gray-700 text-white"
-                  placeholder="Или вставьте URL изображения"
-                />
               </div>
             </div>
             <div>
