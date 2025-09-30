@@ -82,7 +82,12 @@ const Index = () => {
                 <div className="mb-4">
                   <p className="text-white text-xs leading-relaxed mb-1">
                     <span className="text-gray-400">Автор:</span>{" "}
-                    <span className="text-primary">@{CHANNEL_INFO.handle}</span>
+                    <span 
+                      className="text-primary cursor-pointer hover:underline"
+                      onClick={() => handleSubscribe()}
+                    >
+                      @{CHANNEL_INFO.handle}
+                    </span>
                   </p>
                   <p className="text-gray-300 text-xs leading-relaxed">
                     {CHANNEL_INFO.tagline}
@@ -92,7 +97,7 @@ const Index = () => {
                 <Button
                   size="lg"
                   className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-xl py-5 text-sm"
-                  onClick={handleSubscribe}
+                  onClick={() => handleSubscribe()}
                 >
                   Подписаться
                 </Button>
