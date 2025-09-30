@@ -7,6 +7,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
 const POSTS_API = 'https://functions.poehali.dev/db373ce5-74a9-4e99-8495-f473299be4e2';
+const UPLOAD_API = 'https://functions.poehali.dev/1d8298fc-c737-4135-bd22-4d9c96e6f07c';
 
 interface Post {
   id: number;
@@ -135,13 +136,42 @@ const Admin = () => {
     setReactionInput({ emoji: '', count: '' });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        setImagePreview(base64);
+        
+        // Upload to backend immediately
+        try {
+          const response = await fetch(UPLOAD_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image: base64,
+              filename: file.name
+            })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            // Use the base64 as URL since CDN upload is not available
+            setFormData({ ...formData, image_url: base64 });
+            toast({
+              title: 'Успешно',
+              description: 'Изображение загружено',
+            });
+          }
+        } catch (error) {
+          toast({
+            title: 'Ошибка',
+            description: 'Не удалось загрузить изображение',
+            variant: 'destructive',
+          });
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -221,19 +251,25 @@ const Admin = () => {
               <label className="text-gray-300 text-sm mb-2 block">Изображение</label>
               <div className="space-y-3">
                 <Input
-                  value={formData.image_url}
-                  onChange={(e) => {
-                    setFormData({ ...formData, image_url: e.target.value });
-                    setImagePreview(e.target.value);
-                  }}
-                  className="bg-gray-800 border-gray-700 text-white"
-                  placeholder="Вставьте URL изображения"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="bg-gray-800 border-gray-700 text-white file:bg-gray-700 file:text-white file:border-0 file:px-4 file:py-2 file:rounded file:mr-4"
                 />
                 {imagePreview && (
                   <div className="relative w-32 h-32">
                     <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-lg" />
                   </div>
                 )}
+                <Input
+                  value={formData.image_url}
+                  onChange={(e) => {
+                    setFormData({ ...formData, image_url: e.target.value });
+                    setImagePreview(e.target.value);
+                  }}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  placeholder="Или вставьте URL изображения"
+                />
               </div>
             </div>
             <div>
