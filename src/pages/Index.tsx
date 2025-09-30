@@ -21,7 +21,7 @@ interface Post {
   image_url: string;
   reactions: Record<string, number>;
   views: number;
-  custom_link?: string;
+  post_url?: string;
 }
 
 const Index = () => {
@@ -45,8 +45,8 @@ const Index = () => {
     fetchPosts();
   }, []);
 
-  const handleSubscribe = (customLink?: string) => {
-    const link = customLink || `https://t.me/${CHANNEL_INFO.handle}`;
+  const handleSubscribe = (postUrl?: string) => {
+    const link = postUrl || `https://t.me/${CHANNEL_INFO.handle}`;
     window.open(link, '_blank');
   };
 
@@ -102,41 +102,21 @@ const Index = () => {
               <span className="text-lg font-semibold">Топовые посты</span>
             </div>
             <div className="grid gap-3 grid-rows-2 flex-1 overflow-hidden">
-              {loading ? (
-                <>
-                  {[1, 2].map((i) => (
-                    <Card key={i} className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl h-full">
-                      <div className="p-4 flex gap-4 h-full">
-                        <Skeleton className="flex-shrink-0 rounded-lg w-32 h-full bg-gray-700/50" />
-                        <div className="flex-1 flex flex-col justify-between">
-                          <div>
-                            <Skeleton className="h-4 w-3/4 mb-2 bg-gray-700/50" />
-                            <Skeleton className="h-3 w-full mb-1.5 bg-gray-700/50" />
-                            <Skeleton className="h-3 w-5/6 bg-gray-700/50" />
-                          </div>
-                          <div className="flex items-center justify-between pt-3">
-                            <div className="flex items-center gap-2.5">
-                              <Skeleton className="h-5 w-12 bg-gray-700/50" />
-                              <Skeleton className="h-5 w-12 bg-gray-700/50" />
-                            </div>
-                            <Skeleton className="h-4 w-10 bg-gray-700/50" />
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </>
-              ) : (
-                posts.map((post, idx) => (
+              {[0, 1].map((i) => {
+                const post = posts[i];
+                const isLoaded = !loading && post;
+                
+                return (
                   <Card
-                    key={post.id}
-                    className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer h-full animate-in fade-in duration-500"
-                    style={{ animationDelay: `${idx * 150}ms` }}
-                    onClick={() => handleSubscribe(post.custom_link)}
+                    key={i}
+                    className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer h-full"
+                    onClick={() => isLoaded && handleSubscribe(post.post_url)}
                   >
                     <div className="p-4 flex gap-4 h-full">
-                      {post.image_url ? (
-                        <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-full">
+                      {!isLoaded ? (
+                        <Skeleton className="flex-shrink-0 rounded-lg w-32 h-full bg-gray-700/50" />
+                      ) : post.image_url ? (
+                        <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-full animate-in fade-in duration-500">
                           <img
                             src={post.image_url}
                             alt={post.title || 'Post preview'}
@@ -144,42 +124,61 @@ const Index = () => {
                           />
                         </div>
                       ) : (
-                        <div className="flex-shrink-0 rounded-lg w-32 h-full bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center">
+                        <div className="flex-shrink-0 rounded-lg w-32 h-full bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center animate-in fade-in duration-500">
                           <span className="text-5xl">📝</span>
                         </div>
                       )}
-                      <div className="flex-1 min-w-0 flex flex-col justify-between">
-                        <div>
-                          {post.title && (
-                            <h3 className="text-white font-semibold text-sm mb-1.5 truncate">
-                              {post.title}
-                            </h3>
-                          )}
-                          <p className="text-gray-300 text-xs leading-relaxed line-clamp-3">
-                            {post.preview}
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-between pt-3">
-                          <div className="flex items-center gap-2.5">
-                            {Object.entries(post.reactions).slice(0, 3).map(([emoji, count], idx) => (
-                              <div key={idx} className="flex items-center gap-1">
-                                <span className="text-sm">{emoji}</span>
-                                <span className="text-gray-400 text-xs font-medium">
-                                  {count}
-                                </span>
+                      <div className="flex-1 flex flex-col justify-between">
+                        {!isLoaded ? (
+                          <>
+                            <div>
+                              <Skeleton className="h-4 w-3/4 mb-2 bg-gray-700/50" />
+                              <Skeleton className="h-3 w-full mb-1.5 bg-gray-700/50" />
+                              <Skeleton className="h-3 w-5/6 bg-gray-700/50" />
+                            </div>
+                            <div className="flex items-center justify-between pt-3">
+                              <div className="flex items-center gap-2.5">
+                                <Skeleton className="h-5 w-12 bg-gray-700/50" />
+                                <Skeleton className="h-5 w-12 bg-gray-700/50" />
                               </div>
-                            ))}
-                          </div>
-                          <div className="flex items-center gap-1 text-gray-400">
-                            <Icon name="Eye" size={14} />
-                            <span className="text-xs font-medium">{post.views}</span>
-                          </div>
-                        </div>
+                              <Skeleton className="h-4 w-10 bg-gray-700/50" />
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="animate-in fade-in duration-500">
+                              {post.title && (
+                                <h3 className="text-white font-semibold text-sm mb-1.5 truncate">
+                                  {post.title}
+                                </h3>
+                              )}
+                              <p className="text-gray-300 text-xs leading-relaxed line-clamp-3">
+                                {post.preview}
+                              </p>
+                            </div>
+                            <div className="flex items-center justify-between pt-3 animate-in fade-in duration-500" style={{ animationDelay: '100ms' }}>
+                              <div className="flex items-center gap-2.5">
+                                {Object.entries(post.reactions).slice(0, 3).map(([emoji, count], idx) => (
+                                  <div key={idx} className="flex items-center gap-1">
+                                    <span className="text-sm">{emoji}</span>
+                                    <span className="text-gray-400 text-xs font-medium">
+                                      {count}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-1 text-gray-400">
+                                <Icon name="Eye" size={14} />
+                                <span className="text-xs font-medium">{post.views}</span>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </Card>
-                ))
-              )}
+                );
+              })}
             </div>
           </div>
         </div>
