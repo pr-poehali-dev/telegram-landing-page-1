@@ -7,7 +7,8 @@ Returns: HTTP response dict с постами в JSON формате
 
 import json
 import os
-import base64
+import jwt
+from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -17,33 +18,34 @@ def get_db_connection():
     database_url = os.environ.get('DATABASE_URL')
     return psycopg2.connect(database_url, cursor_factory=RealDictCursor)
 
-def check_basic_auth(headers: Dict[str, str]) -> bool:
-    """Проверяет Basic Auth через кастомный заголовок X-Auth-Token"""
-    auth_header = headers.get('x-auth-token') or headers.get('X-Auth-Token')
-    if not auth_header:
-        print(f"No X-Auth-Token header found. Available headers: {list(headers.keys())}")
-        return False
-    
+def verify_jwt_token(token: str) -> bool:
+    """Проверяет JWT токен"""
     try:
-        scheme, credentials = auth_header.split(' ', 1)
-        if scheme.lower() != 'basic':
-            print(f"Wrong scheme: {scheme}")
-            return False
-        
-        decoded = base64.b64decode(credentials).decode('utf-8')
-        username, password = decoded.split(':', 1)
-        
-        expected_username = os.environ.get('ADMIN_USERNAME', 'admin')
-        expected_password = os.environ.get('ADMIN_PASSWORD', 'admin')
-        
-        print(f"Received: username={username}, password={'*' * len(password)}")
-        print(f"Expected: username={expected_username}, password={'*' * len(expected_password)}")
-        print(f"Match: {username == expected_username and password == expected_password}")
-        
-        return username == expected_username and password == expected_password
-    except Exception as e:
-        print(f"Auth error: {e}")
+        secret = os.environ.get('JWT_SECRET', 'default-secret-key')
+        payload = jwt.decode(token, secret, algorithms=['HS256'])
+        print(f"JWT verified for user: {payload.get('username')}")
+        return True
+    except jwt.ExpiredSignatureError:
+        print("JWT expired")
         return False
+    except Exception as e:
+        print(f"JWT error: {e}")
+        return False
+
+def create_jwt_token(username: str) -> str:
+    """Создает JWT токен"""
+    secret = os.environ.get('JWT_SECRET', 'default-secret-key')
+    payload = {
+        'username': username,
+        'exp': datetime.utcnow() + timedelta(days=7)
+    }
+    return jwt.encode(payload, secret, algorithm='HS256')
+
+def check_credentials(username: str, password: str) -> bool:
+    """Проверяет логин и пароль"""
+    expected_username = os.environ.get('ADMIN_USERNAME', 'admin')
+    expected_password = os.environ.get('ADMIN_PASSWORD', 'admin')
+    return username == expected_username and password == expected_password
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'GET')
@@ -115,7 +117,45 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # POST /posts - создать новый пост (требует авторизации)
         elif method == 'POST':
-            if not check_basic_auth(event.get('headers', {})):
+            body_data = json.loads(event.get('body', '{}'))
+            
+            # Если это запрос логина
+            if body_data.get('action') == 'login':
+                username = body_data.get('username')
+                password = body_data.get('password')
+                
+                if not check_credentials(username, password):
+                    return {
+                        'statusCode': 401,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Invalid credentials'}),
+                        'isBase64Encoded': False
+                    }
+                
+                token = create_jwt_token(username)
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'token': token}),
+                    'isBase64Encoded': False
+                }
+            
+            # Проверяем JWT токен
+            auth_header = event.get('headers', {}).get('x-auth-token') or event.get('headers', {}).get('X-Auth-Token')
+            if not auth_header or not auth_header.startswith('Bearer '):
+                print(f"No Bearer token. Headers: {list(event.get('headers', {}).keys())}")
+                return {
+                    'statusCode': 401,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'error': 'Unauthorized'}),
+                    'isBase64Encoded': False
+                }
+            
+            token = auth_header.split(' ', 1)[1]
+            if not verify_jwt_token(token):
                 return {
                     'statusCode': 401,
                     'headers': {
@@ -126,7 +166,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'error': 'Unauthorized'}),
                     'isBase64Encoded': False
                 }
-            body_data = json.loads(event.get('body', '{}'))
             
             title = body_data.get('title', '')
             preview = body_data.get('preview', '')
@@ -157,7 +196,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # PUT /posts/:id - обновить пост (требует авторизации)
         elif method == 'PUT':
-            if not check_basic_auth(event.get('headers', {})):
+            auth_header = event.get('headers', {}).get('x-auth-token') or event.get('headers', {}).get('X-Auth-Token')
+            if not auth_header or not auth_header.startswith('Bearer '):
+                return {
+                    'statusCode': 401,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'error': 'Unauthorized'}),
+                    'isBase64Encoded': False
+                }
+            
+            token = auth_header.split(' ', 1)[1]
+            if not verify_jwt_token(token):
                 return {
                     'statusCode': 401,
                     'headers': {
@@ -246,7 +298,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # DELETE /posts?id=X - удалить пост (требует авторизации)
         elif method == 'DELETE':
-            if not check_basic_auth(event.get('headers', {})):
+            auth_header = event.get('headers', {}).get('x-auth-token') or event.get('headers', {}).get('X-Auth-Token')
+            if not auth_header or not auth_header.startswith('Bearer '):
+                return {
+                    'statusCode': 401,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'error': 'Unauthorized'}),
+                    'isBase64Encoded': False
+                }
+            
+            token = auth_header.split(' ', 1)[1]
+            if not verify_jwt_token(token):
                 return {
                     'statusCode': 401,
                     'headers': {

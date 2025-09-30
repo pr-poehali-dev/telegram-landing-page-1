@@ -34,6 +34,7 @@ const Admin = () => {
   });
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [jwtToken, setJwtToken] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [reactionInput, setReactionInput] = useState({ emoji: '', count: '' });
@@ -58,9 +59,40 @@ const Admin = () => {
     }
   };
   
-  const getAuthHeader = () => {
-    const token = btoa(`${credentials.username}:${credentials.password}`);
-    return `Basic ${token}`;
+  const handleLogin = async () => {
+    try {
+      const response = await fetch(POSTS_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'login',
+          username: credentials.username,
+          password: credentials.password
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setJwtToken(data.token);
+        setIsAuthenticated(true);
+        toast({
+          title: 'Успех!',
+          description: 'Вы успешно вошли',
+        });
+      } else {
+        toast({
+          title: 'Ошибка',
+          description: 'Неверные логин или пароль',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось войти',
+        variant: 'destructive',
+      });
+    }
   };
 
   useEffect(() => {
@@ -77,12 +109,10 @@ const Admin = () => {
       const response = await fetch(url, {
         method,
         headers: { 
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Auth-Token': `Bearer ${jwtToken}`
         },
-        body: JSON.stringify({
-          ...formData,
-          _auth: { username: credentials.username, password: credentials.password }
-        }),
+        body: JSON.stringify(formData),
       });
       
       if (response.status === 401) {
@@ -138,9 +168,9 @@ const Admin = () => {
       const response = await fetch(`${POSTS_API}?id=${id}`, {
         method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ _auth: { username: credentials.username, password: credentials.password } })
+          'Content-Type': 'application/json',
+          'X-Auth-Token': `Bearer ${jwtToken}`
+        }
       });
       
       if (response.status === 401) {
@@ -308,7 +338,7 @@ const Admin = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
         <Card className="bg-[#2d2d2d] border-0 p-8 w-full max-w-md">
           <h1 className="text-2xl font-bold text-white mb-6 text-center">Вход в админку</h1>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <div className="space-y-4">
             <div>
               <label className="text-gray-300 text-sm mb-2 block">Логин</label>
               <Input
@@ -328,10 +358,10 @@ const Admin = () => {
                 required
               />
             </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+            <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90">
               Войти
             </Button>
-          </form>
+          </div>
         </Card>
       </div>
     );
