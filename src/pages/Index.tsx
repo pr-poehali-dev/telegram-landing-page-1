@@ -49,9 +49,9 @@ const Index = () => {
   return (
     <div className="telegram-pattern min-h-screen flex items-center justify-center p-4 py-6">
       <div className="w-full max-w-6xl relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:items-stretch">
-          <div className="lg:flex lg:flex-col">
-            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl relative lg:flex-1 lg:flex lg:flex-col">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:items-start">
+          <div>
+            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl relative">
             <div className="absolute top-4 left-4 z-10">
               <Icon name="Send" size={24} className="text-primary" />
             </div>
@@ -107,7 +107,7 @@ const Index = () => {
                     className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
                     onClick={handleSubscribe}
                   >
-                    <div className="p-4 flex gap-4 min-h-[200px]">
+                    <div className="p-4 flex gap-4">
                       {post.image_url ? (
                         <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 self-stretch">
                           <img
