@@ -107,22 +107,22 @@ const Index = () => {
                     className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
                     onClick={handleSubscribe}
                   >
-                    <div className="p-4 flex flex-col">
-                      <div className="flex gap-4 mb-3">
-                        {post.image_url ? (
-                          <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-24">
-                            <img
-                              src={post.image_url}
-                              alt={post.title || 'Post preview'}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex-shrink-0 rounded-lg w-32 h-24 bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center">
-                            <span className="text-5xl">📝</span>
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
+                    <div className="p-4 flex gap-4">
+                      {post.image_url ? (
+                        <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 self-stretch">
+                          <img
+                            src={post.image_url}
+                            alt={post.title || 'Post preview'}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-shrink-0 rounded-lg w-32 self-stretch bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center">
+                          <span className="text-5xl">📝</span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0 flex flex-col justify-between">
+                        <div>
                           {post.title && (
                             <h3 className="text-white font-semibold text-sm mb-1.5 truncate">
                               {post.title}
@@ -132,21 +132,21 @@ const Index = () => {
                             {post.preview}
                           </p>
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between pt-3">
-                        <div className="flex items-center gap-2.5">
-                          {Object.entries(post.reactions).slice(0, 3).map(([emoji, count], idx) => (
-                            <div key={idx} className="flex items-center gap-1">
-                              <span className="text-sm">{emoji}</span>
-                              <span className="text-gray-400 text-xs font-medium">
-                                {count}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-1 text-gray-400">
-                          <Icon name="Eye" size={14} />
-                          <span className="text-xs font-medium">{post.views}</span>
+                        <div className="flex items-center justify-between pt-3">
+                          <div className="flex items-center gap-2.5">
+                            {Object.entries(post.reactions).slice(0, 3).map(([emoji, count], idx) => (
+                              <div key={idx} className="flex items-center gap-1">
+                                <span className="text-sm">{emoji}</span>
+                                <span className="text-gray-400 text-xs font-medium">
+                                  {count}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-1 text-gray-400">
+                            <Icon name="Eye" size={14} />
+                            <span className="text-xs font-medium">{post.views}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
