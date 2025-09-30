@@ -107,7 +107,7 @@ const Index = () => {
               <span className="text-lg font-semibold">Топовые посты</span>
             </div>
             <div className="grid gap-3">
-              {TOP_POSTS.map((post) => (
+              {TOP_POSTS.slice(0, 2).map((post) => (
                 <Card
                   key={post.id}
                   className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
@@ -130,7 +130,7 @@ const Index = () => {
                       ) : null}
                       <div className="flex-1 min-w-0">
                         {post.title && (
-                          <h3 className="text-white font-semibold text-sm mb-1.5">
+                          <h3 className="text-white font-semibold text-sm mb-1.5 truncate">
                             {post.title}
                           </h3>
                         )}
@@ -139,7 +139,7 @@ const Index = () => {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
+                    <div className="flex items-center justify-between pt-3">
                       <div className="flex items-center gap-2.5">
                         {post.reactions.slice(0, 3).map((reaction, idx) => (
                           <div key={idx} className="flex items-center gap-1">
