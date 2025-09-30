@@ -112,11 +112,11 @@ const Index = () => {
                     className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer h-full"
                     onClick={() => isLoaded && handleSubscribe(post.post_url)}
                   >
-                    <div className="p-4 flex gap-4 h-full">
+                    <div className="p-4 flex gap-3 h-full">
                       {!isLoaded ? (
-                        <Skeleton className="flex-shrink-0 rounded-lg w-32 h-full bg-gray-700/50" />
+                        <Skeleton className="flex-shrink-0 rounded-lg w-20 sm:w-32 h-full bg-gray-700/50" />
                       ) : post.image_url ? (
-                        <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-full animate-in fade-in duration-500">
+                        <div className="flex-shrink-0 rounded-lg overflow-hidden w-20 sm:w-32 h-full animate-in fade-in duration-500">
                           <img
                             src={post.image_url}
                             alt={post.title || 'Post preview'}
@@ -124,8 +124,8 @@ const Index = () => {
                           />
                         </div>
                       ) : (
-                        <div className="flex-shrink-0 rounded-lg w-32 h-full bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center animate-in fade-in duration-500">
-                          <span className="text-5xl">📝</span>
+                        <div className="flex-shrink-0 rounded-lg w-20 sm:w-32 h-full bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center animate-in fade-in duration-500">
+                          <span className="text-3xl sm:text-5xl">📝</span>
                         </div>
                       )}
                       <div className="flex-1 flex flex-col justify-between">
