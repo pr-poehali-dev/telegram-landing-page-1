@@ -74,16 +74,15 @@ const Admin = () => {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${POSTS_API}/${editingId}` : POSTS_API;
       
-      const authHeader = getAuthHeader();
-      console.log('Sending auth header:', authHeader);
-      
       const response = await fetch(url, {
         method,
         headers: { 
-          'Content-Type': 'application/json',
-          'X-Auth-Token': authHeader
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          _auth: { username: credentials.username, password: credentials.password }
+        }),
       });
       
       if (response.status === 401) {
@@ -139,8 +138,9 @@ const Admin = () => {
       const response = await fetch(`${POSTS_API}?id=${id}`, {
         method: 'DELETE',
         headers: {
-          'X-Auth-Token': getAuthHeader()
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ _auth: { username: credentials.username, password: credentials.password } })
       });
       
       if (response.status === 401) {
