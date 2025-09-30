@@ -174,10 +174,55 @@ const Admin = () => {
     setReactionInput({ emoji: '', count: '' });
   };
   
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (credentials.username && credentials.password) {
+    
+    try {
+      // Проверяем авторизацию через тестовый запрос
+      const response = await fetch(POSTS_API, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': getAuthHeader()
+        },
+        body: JSON.stringify({
+          title: '__auth_test__',
+          preview: 'test',
+          image_url: '',
+          post_url: '',
+          reactions: {},
+          views: 0
+        })
+      });
+      
+      if (response.status === 401) {
+        toast({
+          title: 'Ошибка',
+          description: 'Неверные логин или пароль',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Если авторизация успешна - удаляем тестовый пост
+      if (response.ok) {
+        const data = await response.json();
+        if (data.id) {
+          await fetch(`${POSTS_API}?id=${data.id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': getAuthHeader() }
+          });
+        }
+      }
+      
       setIsAuthenticated(true);
+      fetchPosts();
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось войти в систему',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -379,36 +424,43 @@ const Admin = () => {
             <div>
               <label className="text-gray-300 text-sm mb-2 block">Реакции</label>
               <div className="space-y-3">
-                <div className="flex gap-2 items-center flex-wrap">
+                <div className="flex gap-2 items-center">
+                  <Input
+                    value={reactionInput.emoji}
+                    onChange={(e) => setReactionInput({ ...reactionInput, emoji: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white w-20 text-center text-2xl h-12"
+                    placeholder="😀"
+                    maxLength={2}
+                  />
                   <div className="relative">
                     <Button
                       type="button"
                       onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className="bg-gray-800 border border-gray-700 text-white hover:bg-gray-700 w-14 h-10 text-xl p-0"
+                      className="bg-gray-700 border-0 text-white hover:bg-gray-600 px-3 h-12"
                     >
-                      {reactionInput.emoji || '😀'}
+                      <Icon name="Smile" size={20} />
                     </Button>
                     {showEmojiPicker && (
-                      <div className="absolute z-50 mt-2 left-0 bg-gray-800 border border-gray-700 rounded-lg p-2 grid grid-cols-6 gap-1 shadow-xl">
-                        {popularEmojis.map((emoji) => (
-                          <button
-                            key={emoji}
-                            type="button"
-                            onClick={() => handleEmojiSelect(emoji)}
-                            className="text-2xl hover:bg-gray-700 rounded p-1.5 transition-colors w-10 h-10 flex items-center justify-center"
-                          >
-                            {emoji}
-                          </button>
-                        ))}
-                      </div>
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setShowEmojiPicker(false)}
+                        />
+                        <div className="absolute z-50 mt-2 left-0 bg-gray-800 border border-gray-700 rounded-lg p-3 grid grid-cols-4 gap-2 shadow-2xl">
+                          {popularEmojis.map((emoji) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => handleEmojiSelect(emoji)}
+                              className="text-3xl hover:bg-gray-700 rounded p-2 transition-colors w-12 h-12 flex items-center justify-center"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </>
                     )}
                   </div>
-                  <Input
-                    value={reactionInput.emoji}
-                    onChange={(e) => setReactionInput({ ...reactionInput, emoji: e.target.value })}
-                    className="bg-gray-800 border-gray-700 text-white w-16 text-center text-xl"
-                    placeholder="😀"
-                  />
                   <Input
                     type="number"
                     value={reactionInput.count}
