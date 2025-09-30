@@ -114,7 +114,7 @@ const Admin = () => {
     
     try {
       const method = editingId ? 'PUT' : 'POST';
-      const url = editingId ? `${POSTS_API}/${editingId}` : POSTS_API;
+      const url = editingId ? `${POSTS_API}?id=${editingId}` : POSTS_API;
       
       const response = await fetch(url, {
         method,

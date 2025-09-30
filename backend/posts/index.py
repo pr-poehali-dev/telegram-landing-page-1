@@ -220,8 +220,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'error': 'Unauthorized'}),
                     'isBase64Encoded': False
                 }
-            path_params = event.get('pathParams', {})
-            post_id = path_params.get('id')
+            query_params = event.get('queryStringParameters', {})
+            post_id = query_params.get('id')
             
             if not post_id:
                 return {
