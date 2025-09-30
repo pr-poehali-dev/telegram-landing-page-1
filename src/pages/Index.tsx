@@ -158,14 +158,17 @@ const Index = () => {
                             </div>
                             <div className="flex items-center justify-between pt-3 animate-in fade-in duration-500" style={{ animationDelay: '100ms' }}>
                               <div className="flex items-center gap-2.5">
-                                {Object.entries(post.reactions).slice(0, 3).map(([emoji, count], idx) => (
-                                  <div key={idx} className="flex items-center gap-1">
-                                    <span className="text-sm">{emoji}</span>
-                                    <span className="text-gray-400 text-xs font-medium">
-                                      {count}
-                                    </span>
-                                  </div>
-                                ))}
+                                {Object.entries(post.reactions)
+                                  .sort(([, a], [, b]) => b - a)
+                                  .slice(0, 3)
+                                  .map(([emoji, count], idx) => (
+                                    <div key={idx} className="flex items-center gap-1">
+                                      <span className="text-sm">{emoji}</span>
+                                      <span className="text-gray-400 text-xs font-medium">
+                                        {count}
+                                      </span>
+                                    </div>
+                                  ))}
                               </div>
                               <div className="flex items-center gap-1 text-gray-400">
                                 <Icon name="Eye" size={14} />
