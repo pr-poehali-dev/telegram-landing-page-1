@@ -18,10 +18,10 @@ def get_db_connection():
     return psycopg2.connect(database_url, cursor_factory=RealDictCursor)
 
 def check_basic_auth(headers: Dict[str, str]) -> bool:
-    """Проверяет Basic Auth"""
-    auth_header = headers.get('authorization') or headers.get('Authorization')
+    """Проверяет Basic Auth через кастомный заголовок X-Auth-Token"""
+    auth_header = headers.get('x-auth-token') or headers.get('X-Auth-Token')
     if not auth_header:
-        print("No auth header found")
+        print(f"No X-Auth-Token header found. Available headers: {list(headers.keys())}")
         return False
     
     try:
@@ -55,7 +55,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',

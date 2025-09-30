@@ -78,7 +78,7 @@ const Admin = () => {
         method,
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': getAuthHeader()
+          'X-Auth-Token': getAuthHeader()
         },
         body: JSON.stringify(formData),
       });
@@ -136,7 +136,7 @@ const Admin = () => {
       const response = await fetch(`${POSTS_API}?id=${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': getAuthHeader()
+          'X-Auth-Token': getAuthHeader()
         }
       });
       
