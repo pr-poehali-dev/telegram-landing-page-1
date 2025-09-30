@@ -206,58 +206,6 @@ const Admin = () => {
     setImagePreview('');
     setReactionInput({ emoji: '', count: '' });
   };
-  
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      // Проверяем авторизацию через тестовый запрос
-      const response = await fetch(POSTS_API, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': getAuthHeader()
-        },
-        body: JSON.stringify({
-          title: '__auth_test__',
-          preview: 'test',
-          image_url: '',
-          post_url: '',
-          reactions: {},
-          views: 0
-        })
-      });
-      
-      if (response.status === 401) {
-        toast({
-          title: 'Ошибка',
-          description: 'Неверные логин или пароль',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      // Если авторизация успешна - удаляем тестовый пост
-      if (response.ok) {
-        const data = await response.json();
-        if (data.id) {
-          await fetch(`${POSTS_API}?id=${data.id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': getAuthHeader() }
-          });
-        }
-      }
-      
-      setIsAuthenticated(true);
-      fetchPosts();
-    } catch (error) {
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось войти в систему',
-        variant: 'destructive',
-      });
-    }
-  };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
