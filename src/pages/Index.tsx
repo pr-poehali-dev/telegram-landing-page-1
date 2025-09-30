@@ -104,12 +104,12 @@ const Index = () => {
                 posts.map((post) => (
                   <Card
                     key={post.id}
-                    className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
+                    className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer h-full"
                     onClick={handleSubscribe}
                   >
-                    <div className="p-4 flex gap-4">
+                    <div className="p-4 flex gap-4 h-full">
                       {post.image_url ? (
-                        <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 self-stretch">
+                        <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-full">
                           <img
                             src={post.image_url}
                             alt={post.title || 'Post preview'}
@@ -117,7 +117,7 @@ const Index = () => {
                           />
                         </div>
                       ) : (
-                        <div className="flex-shrink-0 rounded-lg w-32 self-stretch bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center">
+                        <div className="flex-shrink-0 rounded-lg w-32 h-full bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center">
                           <span className="text-5xl">📝</span>
                         </div>
                       )}
