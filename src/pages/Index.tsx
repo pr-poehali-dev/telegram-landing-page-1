@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
@@ -10,46 +11,37 @@ const CHANNEL_INFO = {
   avatarUrl: 'https://cdn.poehali.dev/files/e8c5aca1-e954-401a-bb79-620656139ed2.jpg',
 };
 
-const TOP_POSTS = [
-  {
-    id: 1,
-    thumbnail: 'https://cdn.poehali.dev/files/9165a5b8-ab3c-424b-87b5-0a62741b38ea.png',
-    title: 'INBOUND_2025_30_Charts',
-    text: 'Неделю назад на одной из самых крутых конференций по маркетингу INBOUND уважаемый дядька Нил Патель рассказал, к чему надо быть готовым в маркетинге...',
-    views: 378,
-    reactions: [
-      { emoji: '🔥', count: 11 },
-      { emoji: '❤️', count: 6 },
-      { emoji: '⚡', count: 4 },
-      { emoji: '💯', count: 1 }
-    ]
-  },
-  {
-    id: 2,
-    thumbnail: 'https://cdn.poehali.dev/files/e8c5aca1-e954-401a-bb79-620656139ed2.jpg',
-    text: 'Как мы получили $2M инвестиций через контент маркетинг. 3 главных инсайта от запуска стартапа, которые работают и сейчас. Делюсь опытом 🚀',
-    views: 892,
-    reactions: [
-      { emoji: '🔥', count: 24 },
-      { emoji: '👍', count: 18 },
-      { emoji: '💪', count: 7 }
-    ]
-  },
-  {
-    id: 3,
-    placeholderEmoji: '📊',
-    text: 'Разбор кейса: как маркетинг Яндекса увеличил конверсию на 340% за 3 месяца. Тактики, которые вы можете использовать уже сегодня. Сохраняйте пост ⚡',
-    views: 1245,
-    reactions: [
-      { emoji: '🔥', count: 45 },
-      { emoji: '❤️', count: 31 },
-      { emoji: '👏', count: 12 },
-      { emoji: '💡', count: 8 }
-    ]
-  }
-];
+const POSTS_API = 'https://functions.poehali.dev/db373ce5-74a9-4e99-8495-f473299be4e2';
+
+interface Post {
+  id: number;
+  title: string;
+  preview: string;
+  image_url: string;
+  reactions: Record<string, number>;
+  views: number;
+}
 
 const Index = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch(POSTS_API);
+        const data = await response.json();
+        setPosts(data.slice(0, 2));
+      } catch (error) {
+        console.error('Failed to fetch posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
   const handleSubscribe = () => {
     window.open(`https://t.me/${CHANNEL_INFO.handle}`, '_blank');
   };
@@ -106,57 +98,61 @@ const Index = () => {
               <span className="text-lg font-semibold">Топовые посты</span>
             </div>
             <div className="grid gap-3">
-              {TOP_POSTS.slice(0, 2).map((post) => (
-                <Card
-                  key={post.id}
-                  className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
-                  onClick={handleSubscribe}
-                >
-                  <div className="p-4 flex flex-col">
-                    <div className="flex gap-4 mb-3">
-                      {post.thumbnail ? (
-                        <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-24">
-                          <img
-                            src={post.thumbnail}
-                            alt={post.title || 'Post preview'}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : post.placeholderEmoji ? (
-                        <div className="flex-shrink-0 rounded-lg w-32 h-24 bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center">
-                          <span className="text-5xl">{post.placeholderEmoji}</span>
-                        </div>
-                      ) : null}
-                      <div className="flex-1 min-w-0">
-                        {post.title && (
-                          <h3 className="text-white font-semibold text-sm mb-1.5 truncate">
-                            {post.title}
-                          </h3>
-                        )}
-                        <p className="text-gray-300 text-xs leading-relaxed line-clamp-3">
-                          {post.text}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-3">
-                      <div className="flex items-center gap-2.5">
-                        {post.reactions.slice(0, 3).map((reaction, idx) => (
-                          <div key={idx} className="flex items-center gap-1">
-                            <span className="text-sm">{reaction.emoji}</span>
-                            <span className="text-gray-400 text-xs font-medium">
-                              {reaction.count}
-                            </span>
+              {loading ? (
+                <div className="text-center text-gray-400 py-8">Загрузка постов...</div>
+              ) : (
+                posts.map((post) => (
+                  <Card
+                    key={post.id}
+                    className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
+                    onClick={handleSubscribe}
+                  >
+                    <div className="p-4 flex flex-col">
+                      <div className="flex gap-4 mb-3">
+                        {post.image_url ? (
+                          <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-24">
+                            <img
+                              src={post.image_url}
+                              alt={post.title || 'Post preview'}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                        ))}
+                        ) : (
+                          <div className="flex-shrink-0 rounded-lg w-32 h-24 bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center">
+                            <span className="text-5xl">📝</span>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          {post.title && (
+                            <h3 className="text-white font-semibold text-sm mb-1.5 truncate">
+                              {post.title}
+                            </h3>
+                          )}
+                          <p className="text-gray-300 text-xs leading-relaxed line-clamp-3">
+                            {post.preview}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-gray-400">
-                        <Icon name="Eye" size={14} />
-                        <span className="text-xs font-medium">{post.views}</span>
+                      <div className="flex items-center justify-between pt-3">
+                        <div className="flex items-center gap-2.5">
+                          {Object.entries(post.reactions).slice(0, 3).map(([emoji, count], idx) => (
+                            <div key={idx} className="flex items-center gap-1">
+                              <span className="text-sm">{emoji}</span>
+                              <span className="text-gray-400 text-xs font-medium">
+                                {count}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1 text-gray-400">
+                          <Icon name="Eye" size={14} />
+                          <span className="text-xs font-medium">{post.views}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         </div>
