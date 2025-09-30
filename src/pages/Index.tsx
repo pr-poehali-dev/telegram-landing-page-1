@@ -55,7 +55,7 @@ const Index = () => {
       <div className="w-full max-w-6xl relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:flex lg:flex-col">
-            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl relative lg:h-full flex flex-col">
+            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl relative lg:h-full lg:min-h-[388px] flex flex-col">
             <div className="absolute top-4 left-4 z-10">
               <Icon name="Send" size={24} className="text-primary" />
             </div>
