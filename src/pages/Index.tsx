@@ -37,6 +37,7 @@ const TOP_POSTS = [
   },
   {
     id: 3,
+    placeholderEmoji: '📊',
     text: 'Разбор кейса: как маркетинг Яндекса увеличил конверсию на 340% за 3 месяца. Тактики, которые вы можете использовать уже сегодня. Сохраняйте пост ⚡',
     views: 1245,
     reactions: [
@@ -56,13 +57,13 @@ const Index = () => {
   return (
     <div className="telegram-pattern min-h-screen flex items-center justify-center p-4 py-6">
       <div className="w-full max-w-6xl relative z-10">
-        <div className="flex items-center gap-3 mb-4 text-white">
-          <Icon name="Send" size={24} className="text-primary" />
-          <span className="text-lg font-semibold">Telegram</span>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 text-white">
+              <Icon name="Send" size={24} className="text-primary" />
+              <span className="text-lg font-semibold">Telegram</span>
+            </div>
+            <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl">
             <div className="p-6 text-center">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-800 ring-4 ring-gray-700/50">
                 <img
@@ -99,9 +100,12 @@ const Index = () => {
               </Button>
             </div>
           </Card>
+          </div>
 
-          <div className="lg:col-span-2 space-y-3">
-            <h2 className="text-white text-lg font-semibold mb-2 px-2">Топовые посты</h2>
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center gap-3 text-white">
+              <span className="text-lg font-semibold">Топовые посты</span>
+            </div>
             <div className="grid gap-3">
               {TOP_POSTS.map((post) => (
                 <Card
@@ -109,40 +113,46 @@ const Index = () => {
                   className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
                   onClick={handleSubscribe}
                 >
-                  <div className="p-4 flex gap-4">
-                    {post.thumbnail && (
-                      <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-24">
-                        <img
-                          src={post.thumbnail}
-                          alt={post.title || 'Post preview'}
-                          className="w-full h-full object-cover"
-                        />
+                  <div className="p-4 flex flex-col">
+                    <div className="flex gap-4 mb-3">
+                      {post.thumbnail ? (
+                        <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-24">
+                          <img
+                            src={post.thumbnail}
+                            alt={post.title || 'Post preview'}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : post.placeholderEmoji ? (
+                        <div className="flex-shrink-0 rounded-lg w-32 h-24 bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center">
+                          <span className="text-5xl">{post.placeholderEmoji}</span>
+                        </div>
+                      ) : null}
+                      <div className="flex-1 min-w-0">
+                        {post.title && (
+                          <h3 className="text-white font-semibold text-sm mb-1.5">
+                            {post.title}
+                          </h3>
+                        )}
+                        <p className="text-gray-300 text-xs leading-relaxed line-clamp-3">
+                          {post.text}
+                        </p>
                       </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      {post.title && (
-                        <h3 className="text-white font-semibold text-sm mb-1.5">
-                          {post.title}
-                        </h3>
-                      )}
-                      <p className="text-gray-300 text-xs leading-relaxed mb-3 line-clamp-2">
-                        {post.text}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          {post.reactions.slice(0, 3).map((reaction, idx) => (
-                            <div key={idx} className="flex items-center gap-1">
-                              <span className="text-sm">{reaction.emoji}</span>
-                              <span className="text-gray-400 text-xs font-medium">
-                                {reaction.count}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-1 text-gray-400">
-                          <Icon name="Eye" size={14} />
-                          <span className="text-xs font-medium">{post.views}</span>
-                        </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
+                      <div className="flex items-center gap-2.5">
+                        {post.reactions.slice(0, 3).map((reaction, idx) => (
+                          <div key={idx} className="flex items-center gap-1">
+                            <span className="text-sm">{reaction.emoji}</span>
+                            <span className="text-gray-400 text-xs font-medium">
+                              {reaction.count}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-1 text-gray-400">
+                        <Icon name="Eye" size={14} />
+                        <span className="text-xs font-medium">{post.views}</span>
                       </div>
                     </div>
                   </div>
