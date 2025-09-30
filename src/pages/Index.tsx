@@ -20,6 +20,7 @@ interface Post {
   image_url: string;
   reactions: Record<string, number>;
   views: number;
+  custom_link?: string;
 }
 
 const Index = () => {
@@ -42,8 +43,9 @@ const Index = () => {
     fetchPosts();
   }, []);
 
-  const handleSubscribe = () => {
-    window.open(`https://t.me/${CHANNEL_INFO.handle}`, '_blank');
+  const handleSubscribe = (customLink?: string) => {
+    const link = customLink || `https://t.me/${CHANNEL_INFO.handle}`;
+    window.open(link, '_blank');
   };
 
   return (
@@ -99,7 +101,7 @@ const Index = () => {
             </div>
             <div className="grid gap-3 lg:flex-1 lg:grid-rows-2">
               {loading ? (
-                <div className="flex items-center justify-center py-20">
+                <div className="flex items-center justify-center h-full">
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-600 border-t-primary"></div>
                 </div>
               ) : (
@@ -107,7 +109,7 @@ const Index = () => {
                   <Card
                     key={post.id}
                     className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer h-full"
-                    onClick={handleSubscribe}
+                    onClick={() => handleSubscribe(post.custom_link)}
                   >
                     <div className="p-4 flex gap-4 h-full">
                       {post.image_url ? (
