@@ -108,9 +108,9 @@ const Index = () => {
                     onClick={handleSubscribe}
                   >
                     <div className="p-4 flex flex-col">
-                      <div className="flex gap-4 mb-3 min-h-[96px]">
+                      <div className="flex gap-4 mb-3">
                         {post.image_url ? (
-                          <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-full">
+                          <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-24">
                             <img
                               src={post.image_url}
                               alt={post.title || 'Post preview'}
@@ -118,7 +118,7 @@ const Index = () => {
                             />
                           </div>
                         ) : (
-                          <div className="flex-shrink-0 rounded-lg w-32 h-full bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center">
+                          <div className="flex-shrink-0 rounded-lg w-32 h-24 bg-gradient-to-br from-primary/20 to-purple-600/20 flex items-center justify-center">
                             <span className="text-5xl">📝</span>
                           </div>
                         )}
