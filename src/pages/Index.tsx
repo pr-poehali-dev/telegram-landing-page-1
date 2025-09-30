@@ -54,96 +54,102 @@ const Index = () => {
   };
 
   return (
-    <div className="telegram-pattern min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md relative z-10">
-        <div className="flex items-center gap-3 mb-8 text-white">
-          <Icon name="Send" size={28} className="text-primary" />
-          <span className="text-xl font-semibold">Telegram</span>
+    <div className="telegram-pattern min-h-screen flex items-center justify-center p-4 py-6">
+      <div className="w-full max-w-6xl relative z-10">
+        <div className="flex items-center gap-3 mb-4 text-white">
+          <Icon name="Send" size={24} className="text-primary" />
+          <span className="text-lg font-semibold">Telegram</span>
         </div>
 
-        <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="p-8 text-center">
-            <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-800 ring-4 ring-gray-700/50">
-              <img
-                src={CHANNEL_INFO.avatarUrl}
-                alt={CHANNEL_INFO.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <h1 className="text-3xl font-bold text-white mb-2">
-              {CHANNEL_INFO.name}
-            </h1>
-
-            <p className="text-gray-400 text-sm mb-4">
-              {CHANNEL_INFO.subscribers} subscribers
-            </p>
-
-            <div className="mb-6">
-              <p className="text-white text-sm leading-relaxed mb-1">
-                <span className="text-gray-400">Автор:</span>{' '}
-                <span className="text-primary">@{CHANNEL_INFO.handle}</span>
-              </p>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                {CHANNEL_INFO.tagline}
-              </p>
-            </div>
-
-            <Button
-              size="lg"
-              className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-xl py-6 text-base"
-              onClick={handleSubscribe}
-            >
-              Подписаться
-            </Button>
-          </div>
-        </Card>
-
-        <div className="mt-8 space-y-4">
-          <h2 className="text-white text-xl font-semibold mb-4 px-2">Топовые посты</h2>
-          {TOP_POSTS.map((post) => (
-            <Card
-              key={post.id}
-              className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
-              onClick={handleSubscribe}
-            >
-              <div className="p-5">
-                {post.thumbnail && (
-                  <div className="mb-4 rounded-xl overflow-hidden">
-                    <img
-                      src={post.thumbnail}
-                      alt={post.title || 'Post preview'}
-                      className="w-full h-48 object-cover"
-                    />
-                  </div>
-                )}
-                {post.title && (
-                  <h3 className="text-white font-semibold text-base mb-2">
-                    {post.title}
-                  </h3>
-                )}
-                <p className="text-gray-300 text-sm leading-relaxed mb-4 line-clamp-3">
-                  {post.text}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {post.reactions.map((reaction, idx) => (
-                      <div key={idx} className="flex items-center gap-1.5">
-                        <span className="text-base">{reaction.emoji}</span>
-                        <span className="text-gray-400 text-sm font-medium">
-                          {reaction.count}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-gray-400">
-                    <Icon name="Eye" size={16} />
-                    <span className="text-sm font-medium">{post.views}</span>
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="bg-[#2d2d2d] border-0 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="p-6 text-center">
+              <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-gray-700 to-gray-800 ring-4 ring-gray-700/50">
+                <img
+                  src={CHANNEL_INFO.avatarUrl}
+                  alt={CHANNEL_INFO.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
-            </Card>
-          ))}
+
+              <h1 className="text-2xl font-bold text-white mb-2">
+                {CHANNEL_INFO.name}
+              </h1>
+
+              <p className="text-gray-400 text-xs mb-3">
+                {CHANNEL_INFO.subscribers} subscribers
+              </p>
+
+              <div className="mb-4">
+                <p className="text-white text-xs leading-relaxed mb-1">
+                  <span className="text-gray-400">Автор:</span>{' '}
+                  <span className="text-primary">@{CHANNEL_INFO.handle}</span>
+                </p>
+                <p className="text-gray-300 text-xs leading-relaxed">
+                  {CHANNEL_INFO.tagline}
+                </p>
+              </div>
+
+              <Button
+                size="lg"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-xl py-5 text-sm"
+                onClick={handleSubscribe}
+              >
+                Подписаться
+              </Button>
+            </div>
+          </Card>
+
+          <div className="lg:col-span-2 space-y-3">
+            <h2 className="text-white text-lg font-semibold mb-2 px-2">Топовые посты</h2>
+            <div className="grid gap-3">
+              {TOP_POSTS.map((post) => (
+                <Card
+                  key={post.id}
+                  className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
+                  onClick={handleSubscribe}
+                >
+                  <div className="p-4 flex gap-4">
+                    {post.thumbnail && (
+                      <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 h-24">
+                        <img
+                          src={post.thumbnail}
+                          alt={post.title || 'Post preview'}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      {post.title && (
+                        <h3 className="text-white font-semibold text-sm mb-1.5">
+                          {post.title}
+                        </h3>
+                      )}
+                      <p className="text-gray-300 text-xs leading-relaxed mb-3 line-clamp-2">
+                        {post.text}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          {post.reactions.slice(0, 3).map((reaction, idx) => (
+                            <div key={idx} className="flex items-center gap-1">
+                              <span className="text-sm">{reaction.emoji}</span>
+                              <span className="text-gray-400 text-xs font-medium">
+                                {reaction.count}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1 text-gray-400">
+                          <Icon name="Eye" size={14} />
+                          <span className="text-xs font-medium">{post.views}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
