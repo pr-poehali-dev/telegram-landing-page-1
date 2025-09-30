@@ -107,7 +107,7 @@ const Index = () => {
                     className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
                     onClick={handleSubscribe}
                   >
-                    <div className="p-4 flex gap-4">
+                    <div className="p-4 flex gap-4 min-h-[200px]">
                       {post.image_url ? (
                         <div className="flex-shrink-0 rounded-lg overflow-hidden w-32 self-stretch">
                           <img
