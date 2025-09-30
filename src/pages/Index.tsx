@@ -73,7 +73,7 @@ const Index = () => {
               </h1>
 
               <p className="text-gray-400 text-xs mb-3">
-                {CHANNEL_INFO.subscribers} subscribers
+                {CHANNEL_INFO.subscribers} подписчиков
               </p>
 
               <div className="mb-4">
