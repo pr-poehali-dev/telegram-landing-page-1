@@ -21,11 +21,13 @@ def check_basic_auth(headers: Dict[str, str]) -> bool:
     """Проверяет Basic Auth"""
     auth_header = headers.get('authorization') or headers.get('Authorization')
     if not auth_header:
+        print("No auth header found")
         return False
     
     try:
         scheme, credentials = auth_header.split(' ', 1)
         if scheme.lower() != 'basic':
+            print(f"Wrong scheme: {scheme}")
             return False
         
         decoded = base64.b64decode(credentials).decode('utf-8')
@@ -34,8 +36,13 @@ def check_basic_auth(headers: Dict[str, str]) -> bool:
         expected_username = os.environ.get('ADMIN_USERNAME', 'admin')
         expected_password = os.environ.get('ADMIN_PASSWORD', 'admin')
         
+        print(f"Received: username={username}, password={'*' * len(password)}")
+        print(f"Expected: username={expected_username}, password={'*' * len(expected_password)}")
+        print(f"Match: {username == expected_username and password == expected_password}")
+        
         return username == expected_username and password == expected_password
-    except:
+    except Exception as e:
+        print(f"Auth error: {e}")
         return False
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
