@@ -34,7 +34,9 @@ const Admin = () => {
   });
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [jwtToken, setJwtToken] = useState<string>('');
+  const [jwtToken, setJwtToken] = useState<string>(() => {
+    return localStorage.getItem('admin_jwt_token') || '';
+  });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [reactionInput, setReactionInput] = useState({ emoji: '', count: '' });
@@ -74,6 +76,7 @@ const Admin = () => {
       if (response.ok) {
         const data = await response.json();
         setJwtToken(data.token);
+        localStorage.setItem('admin_jwt_token', data.token);
         setIsAuthenticated(true);
         toast({
           title: 'Успех!',
@@ -97,6 +100,13 @@ const Admin = () => {
 
   useEffect(() => {
     fetchPosts();
+    
+    // Проверяем сохранённый токен
+    const savedToken = localStorage.getItem('admin_jwt_token');
+    if (savedToken) {
+      setJwtToken(savedToken);
+      setIsAuthenticated(true);
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -323,14 +333,32 @@ const Admin = () => {
             <Icon name="Settings" size={32} className="text-primary" />
             Управление постами
           </h1>
-          <Button
-            variant="outline"
-            onClick={() => (window.location.href = '/')}
-            className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
-          >
-            <Icon name="ArrowLeft" size={18} className="mr-2" />
-            На главную
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                localStorage.removeItem('admin_jwt_token');
+                setJwtToken('');
+                setIsAuthenticated(false);
+                toast({
+                  title: 'Выход',
+                  description: 'Вы вышли из системы',
+                });
+              }}
+              className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
+            >
+              <Icon name="LogOut" size={18} className="mr-2" />
+              Выйти
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => (window.location.href = '/')}
+              className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
+            >
+              <Icon name="ArrowLeft" size={18} className="mr-2" />
+              На главную
+            </Button>
+          </div>
         </div>
 
         <Card className="bg-[#2d2d2d] border-0 p-6 mb-8">
