@@ -10,13 +10,47 @@ const CHANNEL_INFO = {
   avatarUrl: 'https://cdn.poehali.dev/files/e8c5aca1-e954-401a-bb79-620656139ed2.jpg',
 };
 
-const Index = () => {
-  const handleViewInTelegram = () => {
-    window.open(`https://t.me/${CHANNEL_INFO.handle}`, '_blank');
-  };
+const TOP_POSTS = [
+  {
+    id: 1,
+    thumbnail: 'https://cdn.poehali.dev/files/9165a5b8-ab3c-424b-87b5-0a62741b38ea.png',
+    title: 'INBOUND_2025_30_Charts',
+    text: 'Неделю назад на одной из самых крутых конференций по маркетингу INBOUND уважаемый дядька Нил Патель рассказал, к чему надо быть готовым в маркетинге...',
+    views: 378,
+    reactions: [
+      { emoji: '🔥', count: 11 },
+      { emoji: '❤️', count: 6 },
+      { emoji: '⚡', count: 4 },
+      { emoji: '💯', count: 1 }
+    ]
+  },
+  {
+    id: 2,
+    thumbnail: 'https://cdn.poehali.dev/files/e8c5aca1-e954-401a-bb79-620656139ed2.jpg',
+    text: 'Как мы получили $2M инвестиций через контент маркетинг. 3 главных инсайта от запуска стартапа, которые работают и сейчас. Делюсь опытом 🚀',
+    views: 892,
+    reactions: [
+      { emoji: '🔥', count: 24 },
+      { emoji: '👍', count: 18 },
+      { emoji: '💪', count: 7 }
+    ]
+  },
+  {
+    id: 3,
+    text: 'Разбор кейса: как маркетинг Яндекса увеличил конверсию на 340% за 3 месяца. Тактики, которые вы можете использовать уже сегодня. Сохраняйте пост ⚡',
+    views: 1245,
+    reactions: [
+      { emoji: '🔥', count: 45 },
+      { emoji: '❤️', count: 31 },
+      { emoji: '👏', count: 12 },
+      { emoji: '💡', count: 8 }
+    ]
+  }
+];
 
-  const handleOpenInWeb = () => {
-    window.open(`https://t.me/s/${CHANNEL_INFO.handle}`, '_blank');
+const Index = () => {
+  const handleSubscribe = () => {
+    window.open(`https://t.me/${CHANNEL_INFO.handle}`, '_blank');
   };
 
   return (
@@ -55,26 +89,62 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="space-y-3">
-              <Button
-                size="lg"
-                className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-xl py-6 text-base"
-                onClick={handleViewInTelegram}
-              >
-                VIEW IN TELEGRAM
-              </Button>
-
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full bg-transparent border-2 border-primary text-primary hover:bg-primary/10 font-medium rounded-xl py-6 text-base"
-                onClick={handleOpenInWeb}
-              >
-                OPEN IN WEB
-              </Button>
-            </div>
+            <Button
+              size="lg"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-xl py-6 text-base"
+              onClick={handleSubscribe}
+            >
+              Подписаться
+            </Button>
           </div>
         </Card>
+
+        <div className="mt-8 space-y-4">
+          <h2 className="text-white text-xl font-semibold mb-4 px-2">Топовые посты</h2>
+          {TOP_POSTS.map((post) => (
+            <Card
+              key={post.id}
+              className="bg-[#2d2d2d] border-0 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
+              onClick={handleSubscribe}
+            >
+              <div className="p-5">
+                {post.thumbnail && (
+                  <div className="mb-4 rounded-xl overflow-hidden">
+                    <img
+                      src={post.thumbnail}
+                      alt={post.title || 'Post preview'}
+                      className="w-full h-48 object-cover"
+                    />
+                  </div>
+                )}
+                {post.title && (
+                  <h3 className="text-white font-semibold text-base mb-2">
+                    {post.title}
+                  </h3>
+                )}
+                <p className="text-gray-300 text-sm leading-relaxed mb-4 line-clamp-3">
+                  {post.text}
+                </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {post.reactions.map((reaction, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5">
+                        <span className="text-base">{reaction.emoji}</span>
+                        <span className="text-gray-400 text-sm font-medium">
+                          {reaction.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-gray-400">
+                    <Icon name="Eye" size={16} />
+                    <span className="text-sm font-medium">{post.views}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
