@@ -99,7 +99,9 @@ const Index = () => {
             </div>
             <div className="grid gap-3 lg:flex-1 lg:grid-rows-2">
               {loading ? (
-                <div className="text-center text-gray-400 py-8">Загрузка постов...</div>
+                <div className="flex items-center justify-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-600 border-t-primary"></div>
+                </div>
               ) : (
                 posts.map((post) => (
                   <Card

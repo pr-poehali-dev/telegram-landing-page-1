@@ -455,13 +455,13 @@ const Admin = () => {
                           className="fixed inset-0 z-40" 
                           onClick={() => setShowEmojiPicker(false)}
                         />
-                        <div className="absolute z-50 mt-2 left-0 bg-gray-800 border border-gray-700 rounded-lg p-3 grid grid-cols-4 gap-2 shadow-2xl">
+                        <div className="absolute z-50 mt-2 left-0 bg-gray-800 border border-gray-700 rounded-lg p-4 grid grid-cols-6 gap-2 shadow-2xl min-w-[320px]">
                           {popularEmojis.map((emoji) => (
                             <button
                               key={emoji}
                               type="button"
                               onClick={() => handleEmojiSelect(emoji)}
-                              className="text-3xl hover:bg-gray-700 rounded p-2 transition-colors w-12 h-12 flex items-center justify-center"
+                              className="text-3xl hover:bg-gray-700 rounded-lg p-2 transition-colors w-12 h-12 flex items-center justify-center"
                             >
                               {emoji}
                             </button>
